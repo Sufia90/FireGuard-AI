@@ -1,0 +1,28 @@
+# FireGuard AI — Python dependencies
+# Install with:  pip install -r requirements.txt
+# Python 3.10+ recommended.
+#
+# Core (always needed):
+streamlit>=1.35.0
+pandas>=2.0.0
+numpy>=1.26.0
+scikit-learn>=1.3.0
+plotly>=5.18.0
+pymupdf>=1.23.0
+Pillow>=10.0.0
+python-dotenv>=1.0.0
+#
+# LLM layer (Gemini + Hugging Face — keys come from .env via config.py):
+google-genai>=1.0.0
+requests>=2.31.0
+huggingface-hub>=0.23.0
+#
+# Web search (Tavily — finds NASA sources online for the Research Assistant):
+tavily-python>=0.5.0
+#
+# Observability (LangSmith tracing of the RAG pipeline — optional):
+langsmith>=0.1.0
+#
+# Optional OCR (only for scanned documents — also requires the
+# Tesseract-OCR system binary installed on your OS, separate from this package):
+pytesseract>=0.3.10
