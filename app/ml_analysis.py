@@ -25,7 +25,7 @@ def render(df, bundle):
              "burn-intensity proxy band learned from BASS-II data.")
     _acc = bundle.get("cv_accuracy", bundle.get("accuracy", 0))
     st.caption(f"Model: **{bundle.get('model_name', 'unknown')}** — 5-fold "
-               f"cross-validated accuracy on 129 BASS-II tests: {_acc:.1%}")
+               f"cross-validated accuracy on {len(df)} BASS-II tests: {_acc:.1%}")
     st.warning(DERIVED_LABEL_NOTE)
 
     m1, m2, m3 = st.columns(3)
@@ -53,7 +53,6 @@ def render(df, bundle):
         })
         st.success(f"**Predicted burn-intensity band: {label}** "
                    f"(derived O₂-depletion proxy, not a NASA label)")
-
         prob_df = pd.DataFrame({"band": list(probs.keys()),
                                 "probability": list(probs.values())})
         st.plotly_chart(px.bar(prob_df, x="band", y="probability",
