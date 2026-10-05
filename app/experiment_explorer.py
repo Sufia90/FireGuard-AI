@@ -5,8 +5,8 @@ import streamlit as st
 
 def render(df):
     st.header("📊 Experiment Explorer")
-    st.write("Filter the 129 BASS-II tests by fuel, burn-intensity band, and "
-             "oxygen range. Charts update with the filters.")
+    st.write(f"Filter the {len(df)} BASS-II tests by fuel, burn-intensity band, and oxygen range. Charts update with the filters.")
+
 
     f1, f2, f3 = st.columns(3)
     fuels = f1.multiselect("Fuel material",
