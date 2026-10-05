@@ -23,10 +23,12 @@ def _audience(query):
 def _system_prompt(query):
     base = (
         "You are FireGuard AI, a research assistant for NASA microgravity "
-        "combustion (BASS-II). Answer ONLY from the retrieved evidence and the "
-        "BASS-II test-table facts given with the question. Cite the source of "
-        "each claim. Never invent numbers, findings, conclusions, or citations. "
-        "If the evidence does not answer the question, say so plainly."
+        "combustion (BASS-II). Answer ONLY from the retrieved evidence given "
+        "with the question. When evidence [1] is the BASS-II test table, it is "
+        "authoritative for test counts, fuels, oxygen values, and test details "
+        "— use it and cite it. Cite the source of each claim. Never invent "
+        "numbers, findings, conclusions, or citations. If the evidence does not "
+        "answer the question, say so plainly."
     )
     if _audience(query) == "technical":
         return base + (" Write for a specialist: precise terminology, quantitative "
@@ -37,25 +39,25 @@ def _system_prompt(query):
 
 
 def _user_prompt(query, evidence, relevant, table_facts=None):
-    lines = [f"Question: {query}", ""]
+    lines = [f"Question: {query}", "",
+             "Retrieved evidence (ground every claim in this):"]
+    idx = 1
     if table_facts:
-        lines += [
-            "Authoritative facts from the BASS-II test table. Treat these as "
-            "correct for any claim about test counts, fuels, oxygen values, or "
-            "test details:",
-            table_facts,
-            "",
-        ]
-    lines += ["Retrieved evidence (ground every claim in this):"]
-    for i, e in enumerate(evidence or [], 1):
+        lines.append(
+            f"[{idx}] (BASS-II test table — measured values) {table_facts}")
+        idx += 1
+    for e in (evidence or []):
         src = str(e.get("source", "unknown"))
         if e.get("page"):
             src += f", page {e['page']}"
-        lines.append(f"[{i}] ({src}) {str(e.get('excerpt', ''))[:900]}")
+        lines.append(f"[{idx}] ({src}) {str(e.get('excerpt', ''))[:900]}")
+        idx += 1
     for r in relevant or []:
         lines.append(f"- Test {r.get('experiment_id')}: {r.get('why_relevant', '')}")
     lines.append("")
-    lines.append("Direct answer first, then cited support. No invented facts.")
+    lines.append(
+        "Direct answer first, then cited support. If the BASS-II test table "
+        "entry answers the question, use it and cite it. No invented facts.")
     return "\n".join(lines)
 
 
