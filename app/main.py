@@ -76,12 +76,6 @@ div[data-testid="stExpander"] { border: 1px solid rgba(120,160,255,.18); border-
 """
 st.markdown(SPACE_CSS, unsafe_allow_html=True)
 
-DATA_BANNER = (
-    "🛰️ **Real BASS-II data:** 129 experiment tests from the NASA PSI "
-    "BASS-II experimental table, plus the BASS-II Science Requirements "
-    "Document (`SRD_BASS-II.pdf`)."
-)
-
 DERIVED_LABEL_NOTE = (
     "🎯 **About the ML target:** the BASS-II table has no flame-behavior label, "
     "so the model predicts a **burn-intensity proxy** — O₂ depletion "
@@ -119,6 +113,26 @@ with st.sidebar:
 df = get_experiments()
 bundle = get_model_bundle()
 
+DATA_BANNER = (
+    f"🛰️ **Real BASS-II data:** {len(df)} experiment tests from the NASA PSI "
+    "BASS-II experimental table, plus the BASS-II Science Requirements "
+    "Document (`SRD_BASS-II.pdf`)."
+)
+
+PIPELINE = (
+    f"BASS-II table ({len(df)} tests) + SRD_BASS-II.pdf + uploaded papers\n"
+    "        │\n"
+    " Data processing (cleaning, O2-depletion proxy, PDF extract)\n"
+    "        │\n"
+    " ┌──────┴──────┐\n"
+    " RAG           ML\n"
+    " (TF-IDF)      (model comparison → best kept)\n"
+    " └──────┬──────┘\n"
+    " Evidence-grounded synthesis (optional LLM: Gemini / HuggingFace)\n"
+    "        │\n"
+    " FireGuard dashboard (this app)"
+)
+
 st.title("🔥 FireGuard AI")
 st.caption("NASA microgravity combustion research intelligence — BASS-II edition")
 st.info(DATA_BANNER)
@@ -150,20 +164,7 @@ with tabs[0]:
                f"({bundle.get('cv_accuracy', 0):.1%} CV accuracy)")
 
     st.subheader("Pipeline")
-    st.code(
-        "BASS-II table (129 tests) + SRD_BASS-II.pdf + uploaded papers\n"
-        "        │\n"
-        " Data processing (cleaning, O2-depletion proxy, PDF extract)\n"
-        "        │\n"
-        " ┌──────┴──────┐\n"
-        " RAG           ML\n"
-        " (TF-IDF)      (model comparison → best kept)\n"
-        " └──────┬──────┘\n"
-        " Evidence-grounded synthesis (optional LLM: Gemini / HuggingFace)\n"
-        "        │\n"
-        " FireGuard dashboard (this app)",
-        language="text",
-    )
+    st.code(PIPELINE, language="text")
     st.subheader("Data inventory")
     st.write("The team's research table lives at "
              "`data/metadata/data_inventory.csv`:")
