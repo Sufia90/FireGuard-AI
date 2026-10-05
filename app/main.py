@@ -170,6 +170,14 @@ with tabs[0]:
              "`data/metadata/data_inventory.csv`:")
     st.dataframe(pd.read_csv(config.METADATA_DIR / "data_inventory.csv"),
                  use_container_width=True)
+    srd_pdf = config.DOCUMENTS_DIR / "SRD_BASS-II.pdf"
+    if srd_pdf.exists():
+        st.download_button(
+            "📄 Download SRD_BASS-II.pdf (source document)",
+            data=srd_pdf.read_bytes(),
+            file_name="SRD_BASS-II.pdf",
+            mime="application/pdf",
+        )
 
 with tabs[1]:
     research_assistant.render()
