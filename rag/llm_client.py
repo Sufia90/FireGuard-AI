@@ -1,12 +1,7 @@
-import os
-
 import requests
-from dotenv import load_dotenv
 
 import config
 from rag import prompts
-
-load_dotenv()
 
 try:
     from langsmith import traceable
@@ -28,10 +23,10 @@ def _audience(query):
 def _system_prompt(query):
     base = (
         "You are FireGuard AI, a research assistant for NASA microgravity "
-        "combustion (BASS-II). Answer ONLY from the retrieved evidence given "
-        "with the question. Cite the source of each claim. Never invent numbers, "
-        "findings, conclusions, or citations. If the evidence does not answer "
-        "the question, say so plainly."
+        "combustion (BASS-II). Answer ONLY from the retrieved evidence and the "
+        "BASS-II test-table facts given with the question. Cite the source of "
+        "each claim. Never invent numbers, findings, conclusions, or citations. "
+        "If the evidence does not answer the question, say so plainly."
     )
     if _audience(query) == "technical":
         return base + (" Write for a specialist: precise terminology, quantitative "
@@ -41,9 +36,17 @@ def _system_prompt(query):
                    "direct answer, then supporting detail.")
 
 
-def _user_prompt(query, evidence, relevant):
-    lines = [f"Question: {query}", "",
-             "Retrieved evidence (ground every claim in this):"]
+def _user_prompt(query, evidence, relevant, table_facts=None):
+    lines = [f"Question: {query}", ""]
+    if table_facts:
+        lines += [
+            "Authoritative facts from the BASS-II test table. Treat these as "
+            "correct for any claim about test counts, fuels, oxygen values, or "
+            "test details:",
+            table_facts,
+            "",
+        ]
+    lines += ["Retrieved evidence (ground every claim in this):"]
     for i, e in enumerate(evidence or [], 1):
         src = str(e.get("source", "unknown"))
         if e.get("page"):
@@ -134,24 +137,24 @@ def _huggingface_generate(key, model, system, user):
 
 @_traced
 def generate_grounded_answer(query, evidence=None, relevant_experiments=None,
-                             provider=None):
+                             provider=None, table_facts=None):
     providers = config.configured_llm_providers()
     provider = (provider or (providers[0] if providers else None) or "").lower()
     system = _system_prompt(query)
-    user = _user_prompt(query, evidence, relevant_experiments)
+    user = _user_prompt(query, evidence, relevant_experiments, table_facts)
     if provider == "google":
-        key = os.getenv("GOOGLE_API_KEY", "").strip().strip('"')
+        key = config.GOOGLE_API_KEY
         if not key:
-            raise RuntimeError("GOOGLE_API_KEY is not set in .env.")
+            raise RuntimeError("GOOGLE_API_KEY is not set.")
         text, _ = _gemini_generate(key, None, system, user)
         return text
     if provider in ("huggingface", "hf"):
-        key = os.getenv("HUGGINGFACE_API_KEY", "").strip().strip('"')
+        key = config.HUGGINGFACE_API_KEY
         if not key:
-            raise RuntimeError("HUGGINGFACE_API_KEY is not set in .env.")
+            raise RuntimeError("HUGGINGFACE_API_KEY is not set.")
         text, _ = _huggingface_generate(key, None, system, user)
         return text
     raise RuntimeError(
         f"No working LLM provider (requested: {provider or 'none'}). "
-        "Add GOOGLE_API_KEY or HUGGINGFACE_API_KEY to .env."
+        "Add GOOGLE_API_KEY or HUGGINGFACE_API_KEY."
     )
